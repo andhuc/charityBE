@@ -14,6 +14,7 @@ namespace API.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly DBContext _context;
+        public readonly string SK = "habdjawhdbjwhavvvsdag";
 
         public PaymentController(IConfiguration configuration, DBContext context)
         {
@@ -28,7 +29,7 @@ namespace API.Controllers
         {
             try
             {
-                string vnp_Returnurl = "http://localhost:5001/api/Payment/notify";
+                string vnp_Returnurl = "http://localhost:5001/api/Payment/notify?sk=" + SK;
                 string vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
                 string vnp_TmnCode = "CGXZLS0Z";
                 string vnp_HashSecret = "XNBCJFAKAZQSGTARRLGCHVZWCIOIGSHN";
@@ -73,10 +74,15 @@ namespace API.Controllers
 
         [HttpGet]
         [Route("notify")]
-        public async Task<IActionResult> PaymentNotify()
+        public async Task<IActionResult> PaymentNotify([FromQuery] string sk)
         {
             try
             {
+                if (sk != SK)
+                {
+                    return Unauthorized();
+                }
+
                 // Check if query parameters are present
                 if (Request.Query.Count == 0)
                 {

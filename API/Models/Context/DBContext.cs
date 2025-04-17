@@ -168,7 +168,7 @@ namespace API.Models.Context
                     .HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
 
-            modelBuilder.Entity<DonationDTO>(entity =>
+            modelBuilder.Entity<Donation>(entity =>
             {
                 entity.ToTable("donations");
 

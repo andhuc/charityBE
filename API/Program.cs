@@ -4,6 +4,7 @@ using API.Models.DTO;
 using API.Utils;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NET_base.Models.Common;
@@ -103,6 +104,32 @@ builder.Services.AddHostedService<CronJob>();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<DBContext>();
+    var config = services.GetRequiredService<IConfiguration>();
+
+    var adminEmail = config["AdminAccount:Email"];
+    var adminPassword = config["AdminAccount:Password"];
+
+    var existingAdmin = context.Users.FirstOrDefault(u => u.Email == adminEmail);
+    if (existingAdmin == null)
+    {
+        var adminUser = new User
+        {
+            Email = adminEmail,
+            Username = adminEmail.Split('@')[0],
+            FullName = adminEmail.Split('@')[0],
+            Password = Hash.HashPassword(adminPassword),
+            Role = Constant.ADMIN_ROLE
+        };
+
+        context.Users.Add(adminUser);
+        context.SaveChanges();
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -142,5 +169,10 @@ public class AutoMapperProfile : Profile
     public AutoMapperProfile()
     {
         CreateMap<User, UserDTO>();
+        CreateMap<Donation, DonationDTO>();
+        CreateMap<UserDonation, UserDonationDTO>()
+        .ForMember(dest => dest.UserFullname, opt => opt.MapFrom(src => src.User.FullName))
+        .ForMember(dest => dest.DonationTitle, opt => opt.MapFrom(src => src.Donation.Title));
+
     }
 }
