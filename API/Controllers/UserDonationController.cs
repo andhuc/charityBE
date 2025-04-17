@@ -47,6 +47,12 @@ namespace API.Controllers
         {
             try
             {
+                bool donationExists = await _context.Donations.AnyAsync(d => d.Id == userDonationDTO.DonationId);
+                if (!donationExists)
+                {
+                    return new Response<bool>(false, "Donation not found.", false);
+                }
+
                 userDonationDTO.UserId = JwtMiddleware.GetUserId(HttpContext);
                 UserDonation userDonation = _mapper.Map<UserDonation>(userDonationDTO);
 
