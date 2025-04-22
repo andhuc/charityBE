@@ -27,11 +27,24 @@ namespace API.Controllers
         // GET: api/User
         [HttpGet]
         [Authorize("Admin")]
-        public async Task<Response<PagedResult<UserDTO>>> GetUsers([FromQuery] int page = 1, [FromQuery] int size = 10)
+        public async Task<Response<PagedResult<UserDTO>>> GetUsers(
+            [FromQuery] int page = 1,
+            [FromQuery] int size = 10,
+            [FromQuery] string? search = null)
         {
             var usersQuery = _context.Users.AsNoTracking();
 
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var normalized = search.Trim().ToLower();
+                usersQuery = usersQuery.Where(u =>
+                    u.Username.ToLower().Contains(normalized) ||
+                    u.Email.ToLower().Contains(normalized) ||
+                    u.FullName.ToLower().Contains(normalized));
+            }
+
             var totalUsers = await usersQuery.CountAsync();
+
             var users = await usersQuery
                 .Skip((page - 1) * size)
                 .Take(size)
@@ -47,9 +60,11 @@ namespace API.Controllers
                     Queryable = userDtos.AsQueryable(),
                     RowCount = totalUsers,
                     CurrentPage = page,
-                    PageSize = size
+                    PageSize = size,
+                    PageCount = (int)Math.Ceiling((double)totalUsers / size)
                 });
         }
+
 
         // GET: api/User/{id}
         [HttpGet("{id}")]

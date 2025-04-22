@@ -110,8 +110,8 @@ using (var scope = app.Services.CreateScope())
     var context = services.GetRequiredService<DBContext>();
     var config = services.GetRequiredService<IConfiguration>();
 
-    var adminEmail = config["AdminAccount:Email"];
-    var adminPassword = config["AdminAccount:Password"];
+    var adminEmail = config["AdminAccount:Email"] ?? "admin";
+    var adminPassword = config["AdminAccount:Password"] ?? "admin";
 
     var existingAdmin = context.Users.FirstOrDefault(u => u.Email == adminEmail);
     if (existingAdmin == null)
