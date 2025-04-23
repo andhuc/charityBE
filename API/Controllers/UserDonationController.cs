@@ -26,6 +26,7 @@ namespace API.Controllers
         [HttpGet]
         public async Task<Response<PagedResult<UserDonationDTO>>> GetUserDonations(
                 [FromQuery] int? donationId = null,
+                [FromQuery] int? userId = null,
                 [FromQuery] string? search = null,
                 [FromQuery] int page = 1,
                 [FromQuery] int size = 10)
@@ -38,6 +39,9 @@ namespace API.Controllers
 
             if (donationId.HasValue)
                 query = query.Where(ud => ud.DonationId == donationId.Value);
+
+            if (userId.HasValue)
+                query = query.Where(ud => ud.UserId == userId.Value);
 
             if (!string.IsNullOrWhiteSpace(search))
             {
