@@ -45,6 +45,7 @@ namespace API.Controllers
                 transaction.Amount = (decimal)order.Amount;
                 transaction.UserId = (int)userId;
                 transaction.OrderId = OrderId;
+                transaction.DonationId = order.DonationId;
 
                 await _context.Transactions.AddAsync(transaction);
                 await _context.SaveChangesAsync();
@@ -68,7 +69,7 @@ namespace API.Controllers
                 return new Response<string>(true, "Success", paymentUrl);
             } catch (Exception ex)
             {
-                return new Response<string>(true, ex.Message, null);
+                return new Response<string>(false, ex.Message, null);
             }
         }
 
@@ -146,15 +147,35 @@ namespace API.Controllers
                     return NotFound(new Response<bool>(false, "User not found", false));
                 }
 
+                var donation = await _context.Donations
+                    .FirstOrDefaultAsync(t => t.Id == transaction.DonationId);
+
+                if (donation == null)
+                {
+                    return NotFound(new Response<bool>(false, "Donation not found", false));
+                }
+
                 // Update transaction and user credit
                 if (vnp_ResponseCode == "00" && vnp_TransactionStatus == "00")
                 {
                     transaction.Status = Constant.SUCCESS;
+                    donation.RaisedAmount += transaction.Amount;
+
+                    UserDonation userDonation = new UserDonation();
+                    userDonation.DonationId = transaction.DonationId;
+                    userDonation.UserId = transaction.UserId;
+                    userDonation.Amount = transaction.Amount;
+                    _context.UserDonations.Add(userDonation);
+
                     await _context.SaveChangesAsync();
 
-                    //EmailService.SendMailAsync(user.Email, "Recharge success", $"Recharge successful!\nHi {user.Username},\nYour new balance: {user.Credit / 1000} credits.\nThank you!");
+                    await EmailService.SendMailAsync(user.Email, "Donation Successful",
+                        $"Hi {user.Username},\n\n" +
+                        "Thank you for your generous donation! Your support is greatly appreciated.\n\n" +
+                        "Best regards,\n" +
+                        "ECharity Team");
 
-                    return Redirect("http://localhost:5173/profile?successP");
+                    return Redirect("http://localhost:4200/donate?successP=true&id=" + transaction.DonationId);
                 }
                 else
                 {

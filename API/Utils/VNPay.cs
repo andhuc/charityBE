@@ -161,6 +161,7 @@ namespace API.Utils
         public long? PaymentTranId { get; set; }
         public string? BankCode { get; set; }
         public string? PayStatus { get; set; }
+        public int DonationId { get; set; }
     }
 
 }

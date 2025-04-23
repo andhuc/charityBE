@@ -168,11 +168,12 @@ public class AutoMapperProfile : Profile
 {
     public AutoMapperProfile()
     {
-        CreateMap<User, UserDTO>();
-        CreateMap<Donation, DonationDTO>();
+        CreateMap<User, UserDTO>().ReverseMap();
+        CreateMap<Donation, DonationDTO>().ReverseMap();
         CreateMap<UserDonation, UserDonationDTO>()
         .ForMember(dest => dest.UserFullname, opt => opt.MapFrom(src => src.User.FullName))
-        .ForMember(dest => dest.DonationTitle, opt => opt.MapFrom(src => src.Donation.Title));
+        .ForMember(dest => dest.DonationTitle, opt => opt.MapFrom(src => src.Donation.Title))
+        .ReverseMap();
 
     }
 }

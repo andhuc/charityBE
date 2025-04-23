@@ -166,6 +166,7 @@ namespace API.Models.Context
                     .HasColumnType("timestamp")
                     .HasColumnName("created_at")
                     .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(t => t.DonationId).HasColumnName("donation_id");
             });
 
             modelBuilder.Entity<Donation>(entity =>
